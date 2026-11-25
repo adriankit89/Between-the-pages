@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="bg" x2="0" y2="1"><stop stop-color="#064b25"/><stop offset="1" stop-color="#003c1b"/></linearGradient><linearGradient id="page" x2="0" y2="1"><stop stop-color="#fff8df"/><stop offset="1" stop-color="#f1e4b9"/></linearGradient><filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="8"/></filter></defs>
+<rect width="512" height="512" rx="88" fill="url(#bg)"/>
+<path d="M67 157 Q154 170 250 197 L250 418 Q156 390 67 379Z" fill="#d6a72e" opacity=".9"/>
+<path d="M445 157 Q358 170 262 197 L262 418 Q356 390 445 379Z" fill="#d6a72e" opacity=".9"/>
+<path d="M75 145 Q159 158 250 184 L250 404 Q160 377 75 367Z" fill="url(#page)"/>
+<path d="M437 145 Q353 158 262 184 L262 404 Q352 377 437 367Z" fill="url(#page)"/>
+<path d="M256 184V404" stroke="#b18b36" stroke-width="7"/>
+<g fill="none" stroke="#758b69" stroke-width="7" stroke-linecap="round"><path d="M103 190q69 10 117 28"/><path d="M103 236q69 10 117 28"/><path d="M103 282q69 10 117 28"/><path d="M409 190q-69 10-147 28"/><path d="M409 236q-69 10-147 28"/><path d="M409 282q-69 10-147 28"/></g>
+<path d="M355 94h43v103l-21-17-22 17z" fill="#e4b84d"/>
+<g transform="rotate(-13 256 272)"><rect x="43" y="222" width="426" height="111" rx="15" fill="#fff8e9" opacity=".96"/><rect x="52" y="231" width="408" height="93" rx="10" fill="none" stroke="#6b22a5" stroke-width="13"/><text x="256" y="302" text-anchor="middle" font-family="Impact,Arial Black,sans-serif" font-size="79" font-weight="900" letter-spacing="4" fill="#7020a8">TEST</text></g>
+</svg>
