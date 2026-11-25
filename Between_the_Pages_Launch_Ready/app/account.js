@@ -176,6 +176,9 @@
       const result = original.apply(this, arguments);
       if (window.page === 'backup') {
         installPanel();
+        // Settings markup is rebuilt whenever the user leaves and returns.
+        // Re-apply the current Supabase session to the newly rendered panel.
+        refreshPanel();
       }
       return result;
     };
