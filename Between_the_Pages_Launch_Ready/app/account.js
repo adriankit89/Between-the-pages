@@ -247,14 +247,13 @@
           window.history.replaceState({}, '', window.location.pathname);
           $('btpNewPasswordPanel')?.remove();
 
-          const { data: latestSession } = await client.auth.getSession();
-          authUser = updated?.user || latestSession?.session?.user || sessionData.session.user;
+          authUser = updated?.user || sessionData.session.user;
           authReady = true;
           refreshPanel();
           message('Password updated successfully. You are now signed in with your new password.');
         } catch (error) {
-          out.textContent = error?.message || 'We could not update your password. Please request a new reset email and try again.';
-          button.disabled = false;
+          if (out) out.textContent = error?.message || 'We could not update your password. Please request a new reset email and try again.';
+          if (button) button.disabled = false;
         }
       });
     };
