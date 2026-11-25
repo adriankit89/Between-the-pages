@@ -1,3 +1,5 @@
 name = "between-the-pages-email"
 main = "worker.js"
 compatibility_date = "2026-11-24"
+
+[previews]
