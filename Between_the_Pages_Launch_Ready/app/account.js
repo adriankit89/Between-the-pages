@@ -199,36 +199,67 @@
   function addRecoveryPasswordForm() {
     const params = new URLSearchParams(window.location.search);
     if (params.get('resetPassword') !== '1') return;
+
+    let observer = null;
+    let completed = false;
     const show = () => {
+      if (completed || $('btpNewPasswordPanel')) return;
       const host = document.querySelector('.arc-settings-grid');
-      if (!host || $('btpNewPasswordPanel')) return;
+      if (!host) return;
       host.insertAdjacentHTML('afterbegin', `
         <section class="arc-panel" id="btpNewPasswordPanel">
           <h3>Choose a new password</h3>
+          <p class="arc-help">Use the link from your reset email to set a new password. If this link has expired, request another reset email.</p>
           <div class="field"><label for="btpNewPassword">New password</label><input id="btpNewPassword" type="password" minlength="8" autocomplete="new-password"></div>
           <div class="field"><label for="btpNewPasswordConfirm">Confirm new password</label><input id="btpNewPasswordConfirm" type="password" minlength="8" autocomplete="new-password"></div>
           <button type="button" id="btpSaveNewPassword">Save new password</button>
-          <p id="btpResetMessage" class="arc-help" role="status"></p>
+          <p id="btpResetMessage" class="arc-help" role="status" aria-live="polite"></p>
         </section>`);
+      // We only need to watch for the settings page to appear. Disconnect now:
+      // otherwise removing the completed form can cause the observer to add it again.
+      observer?.disconnect();
+
       $('btpSaveNewPassword').addEventListener('click', async () => {
-        const a = $('btpNewPassword').value, b = $('btpNewPasswordConfirm').value;
+        const button = $('btpSaveNewPassword');
+        const a = $('btpNewPassword')?.value || '';
+        const b = $('btpNewPasswordConfirm')?.value || '';
         const out = $('btpResetMessage');
         if (a.length < 8) { out.textContent = 'Use at least 8 characters.'; return; }
         if (a !== b) { out.textContent = 'The passwords do not match.'; return; }
-        const { data, error } = await client.auth.updateUser({ password: a });
-        if (error) { out.textContent = error.message; return; }
-        // A successful recovery update leaves the user authenticated. Remove the
-        // recovery form and refresh the account panel into its signed-in state.
-        window.history.replaceState({}, '', window.location.pathname);
-        $('btpNewPasswordPanel')?.remove();
-        const { data: sessionData } = await client.auth.getSession();
-        authUser = data?.user || sessionData?.session?.user || authUser;
-        authReady = true;
-        refreshPanel();
-        message('Password updated successfully. You are now signed in with your new password.');
+
+        button.disabled = true;
+        out.textContent = 'Saving your new password…';
+        try {
+          // Supabase exchanges the recovery link for a session during client
+          // initialisation. Check that session exists before attempting the update.
+          const { data: sessionData, error: sessionError } = await client.auth.getSession();
+          if (sessionError) throw sessionError;
+          if (!sessionData?.session?.access_token) {
+            throw new Error('This password reset link is invalid, expired, or has already been used. Please request a new reset email.');
+          }
+
+          const { data: updated, error } = await client.auth.updateUser({ password: a });
+          if (error) throw error;
+
+          completed = true;
+          observer?.disconnect();
+          // Remove the recovery query and any token hash from the address bar.
+          window.history.replaceState({}, '', window.location.pathname);
+          $('btpNewPasswordPanel')?.remove();
+
+          const { data: latestSession } = await client.auth.getSession();
+          authUser = updated?.user || latestSession?.session?.user || sessionData.session.user;
+          authReady = true;
+          refreshPanel();
+          message('Password updated successfully. You are now signed in with your new password.');
+        } catch (error) {
+          out.textContent = error?.message || 'We could not update your password. Please request a new reset email and try again.';
+          button.disabled = false;
+        }
       });
     };
-    const observer = new MutationObserver(show);
+
+    observer = new MutationObserver(show);
     observer.observe(document.body, { childList: true, subtree: true });
     show();
   }
