@@ -1,6 +1,6 @@
 {
-  "name": "Between the Pages \u2013 ARC Review Companion",
-  "short_name": "Between Pages",
+  "name": "Between the Pages – TEST",
+  "short_name": "BTP Test",
   "description": "Organise ARC books, track download and review deadlines, draft your own words and manage review postings.",
   "start_url": "./",
   "scope": "./",
@@ -9,14 +9,10 @@
   "theme_color": "#f6f1e9",
   "icons": [
     {
-      "src": "btp-home-192-0963.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "btp-home-512-0963.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "btp-test-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
     }
   ]
 }
