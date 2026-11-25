@@ -215,9 +215,17 @@
         const out = $('btpResetMessage');
         if (a.length < 8) { out.textContent = 'Use at least 8 characters.'; return; }
         if (a !== b) { out.textContent = 'The passwords do not match.'; return; }
-        const { error } = await client.auth.updateUser({ password: a });
-        out.textContent = error ? error.message : 'Password updated. You can now sign in with your new password.';
-        if (!error) window.history.replaceState({}, '', window.location.pathname);
+        const { data, error } = await client.auth.updateUser({ password: a });
+        if (error) { out.textContent = error.message; return; }
+        // A successful recovery update leaves the user authenticated. Remove the
+        // recovery form and refresh the account panel into its signed-in state.
+        window.history.replaceState({}, '', window.location.pathname);
+        $('btpNewPasswordPanel')?.remove();
+        const { data: sessionData } = await client.auth.getSession();
+        authUser = data?.user || sessionData?.session?.user || authUser;
+        authReady = true;
+        refreshPanel();
+        message('Password updated successfully. You are now signed in with your new password.');
       });
     };
     const observer = new MutationObserver(show);
