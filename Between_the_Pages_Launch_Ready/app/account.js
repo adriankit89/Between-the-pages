@@ -309,11 +309,13 @@
       authUser = data?.session?.user || null;
       authReady = true;
       refreshPanel();
+      if (typeof window.loadPendingArcImports === 'function') window.loadPendingArcImports();
     });
     client.auth.onAuthStateChange((_event, sessionValue) => {
       authUser = sessionValue?.user || null;
       authReady = true;
       refreshPanel();
+      if (typeof window.loadPendingArcImports === 'function') window.loadPendingArcImports();
     });
     addRecoveryPasswordForm();
     if (new URLSearchParams(window.location.search).get('resetPassword') === '1') {
