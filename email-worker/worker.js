@@ -112,8 +112,10 @@ export default {
     }
     if (request.method !== "POST" || url.pathname !== "/") return json({ error: "Not found" }, 404);
     try {
-      if (!env.RESEND_API_KEY || !env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY || !env.RESEND_WEBHOOK_SECRET) {
-        return json({ error: "Email worker is missing a required secret or variable." }, 503);
+      const requiredSettings = ["RESEND_API_KEY", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "RESEND_WEBHOOK_SECRET"];
+      const missingSettings = requiredSettings.filter(name => !env[name] || !String(env[name]).trim());
+      if (missingSettings.length) {
+        return json({ error: "Email worker is missing required settings.", missing: missingSettings }, 503);
       }
       const rawBody = await request.text();
       if (!(await verifyWebhook(request, rawBody, env.RESEND_WEBHOOK_SECRET))) return json({ error: "Invalid webhook signature." }, 401);
