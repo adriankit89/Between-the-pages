@@ -34,8 +34,16 @@ export default {
         return null;
       }
 
+      if (!env.SUPABASE_URL) {
+        throw new Error("Cloudflare Worker variable SUPABASE_URL is missing. Add your Supabase Project URL to the Worker environment variables.");
+      }
+      if (!env.SUPABASE_SERVICE_ROLE_KEY) {
+        throw new Error("Cloudflare Worker secret SUPABASE_SERVICE_ROLE_KEY is missing.");
+      }
+
+      const supabaseUrl = env.SUPABASE_URL.replace(/\\/+$/, "");
       const response = await fetch(
-        `${env.SUPABASE_URL}/auth/v1/user`,
+        `${supabaseUrl}/auth/v1/user`
         {
           headers: {
             "apikey": env.SUPABASE_SERVICE_ROLE_KEY,
@@ -81,7 +89,7 @@ export default {
         // Update Supabase backup record
         stage = "updating Supabase backup metadata";
         const dbResponse = await fetch(
-          `${env.SUPABASE_URL}/rest/v1/user_backups?on_conflict=object_key`,
+          `${env.SUPABASE_URL.replace(/\\/+$/, "")}/rest/v1/user_backups?on_conflict=object_key`,
           {
             method: "POST",
             headers: {
