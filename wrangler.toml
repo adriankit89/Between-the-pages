@@ -1,3 +1,12 @@
 name = "between-the-pages-email"
 main = "worker.js"
 compatibility_date = "2026-11-24"
+
+[[r2_buckets]]
+binding = "BACKUP_BUCKET"
+bucket_name = "between-the-pages-backup"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "between-the-pages-db"
+database_id = "4574e402-97fd-4dd8-842f-a5491615045b"
