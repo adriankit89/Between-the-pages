@@ -43,7 +43,7 @@ export default {
 
       const supabaseUrl = env.SUPABASE_URL.replace(/\\/+$/, "");
       const response = await fetch(
-        `${supabaseUrl}/auth/v1/user`
+        `${supabaseUrl}/auth/v1/user`,
         {
           headers: {
             "apikey": env.SUPABASE_SERVICE_ROLE_KEY,
