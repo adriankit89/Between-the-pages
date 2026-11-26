@@ -41,7 +41,7 @@ export default {
         throw new Error("Cloudflare Worker secret SUPABASE_SERVICE_ROLE_KEY is missing.");
       }
 
-      const supabaseUrl = env.SUPABASE_URL.replace(/\\/+$/, "");
+      const supabaseUrl = env.SUPABASE_URL.replace(/\/+$/, "");
       const response = await fetch(
         `${supabaseUrl}/auth/v1/user`,
         {
@@ -89,7 +89,7 @@ export default {
         // Update Supabase backup record
         stage = "updating Supabase backup metadata";
         const dbResponse = await fetch(
-          `${env.SUPABASE_URL.replace(/\\/+$/, "")}/rest/v1/user_backups?on_conflict=object_key`,
+          `${env.SUPABASE_URL.replace(/\/+$/, "")}/rest/v1/user_backups?on_conflict=object_key`,
           {
             method: "POST",
             headers: {
