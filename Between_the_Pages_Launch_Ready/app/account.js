@@ -4,7 +4,7 @@
   'use strict';
   const SUPABASE_URL = 'https://vhuzxjzijliwfogvjacc.supabase.co';
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_mOfPT8PmG4ep444ikNUkKQ_DJLfX2TS';
-  const BACKUP_URL = 'https://between-the-pages-email.akitajewski.workers.dev/backup';
+  const BACKUP_URL = 'https://between-the-pages.akitajewski.workers.dev/backup';
   let client = null;
   let authUser = null;
   let authReady = false;
