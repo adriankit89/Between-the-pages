@@ -1,6 +1,9 @@
-name = "between-the-pages-email"
+name = "between-the-pages"
 main = "worker.js"
 compatibility_date = "2026-11-24"
+
+[vars]
+SUPABASE_URL = "https://vhuzxjzijliwfogvjacc.supabase.co"
 
 [[r2_buckets]]
 binding = "BACKUP_BUCKET"
