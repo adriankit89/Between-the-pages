@@ -53,6 +53,31 @@ function parseApproval(email) {
   };
 }
 
+async function verifyWebhook(request, rawBody, secret) {
+  const id = request.headers.get("svix-id") || "";
+  const timestamp = request.headers.get("svix-timestamp") || "";
+  const signatures = request.headers.get("svix-signature") || "";
+  if (!id || !timestamp || !signatures || !secret) return false;
+  const seconds = Number(timestamp);
+  if (!Number.isFinite(seconds) || Math.abs(Date.now() / 1000 - seconds) > 300) return false;
+  const encodedSecret = secret.startsWith("whsec_") ? secret.slice(6) : secret;
+  let keyBytes;
+  try {
+    const binary = atob(encodedSecret);
+    keyBytes = Uint8Array.from(binary, ch => ch.charCodeAt(0));
+  } catch { return false; }
+  const key = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  const signed = new TextEncoder().encode(id + "." + timestamp + "." + rawBody);
+  const digest = new Uint8Array(await crypto.subtle.sign("HMAC", key, signed));
+  let binary = "";
+  digest.forEach(byte => binary += String.fromCharCode(byte));
+  const expected = btoa(binary);
+  return signatures.split(" ").some(part => {
+    const pieces = part.split(",");
+    return pieces.length === 2 && pieces[0] === "v1" && pieces[1] === expected;
+  });
+}
+
 async function fetchReceivedEmail(emailId, apiKey) {
   const response = await fetch("https://api.resend.com/emails/receiving/" + encodeURIComponent(emailId), {
     headers: { authorization: "Bearer " + apiKey, accept: "application/json" }
@@ -63,7 +88,7 @@ async function fetchReceivedEmail(emailId, apiKey) {
 
 async function storePending(env, row) {
   const base = env.SUPABASE_URL.replace(/\/+$/, "");
-  const response = await fetch(base + "/rest/v1/pending_arc_imports", {
+  const response = await fetch(base + "/rest/v1/pending_arc_imports?on_conflict=resend_email_id", {
     method: "POST",
     headers: {
       apikey: env.SUPABASE_SERVICE_ROLE_KEY,
@@ -87,10 +112,12 @@ export default {
     }
     if (request.method !== "POST" || url.pathname !== "/") return json({ error: "Not found" }, 404);
     try {
-      if (!env.RESEND_API_KEY || !env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+      if (!env.RESEND_API_KEY || !env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY || !env.RESEND_WEBHOOK_SECRET) {
         return json({ error: "Email worker is missing a required secret or variable." }, 503);
       }
-      const event = await request.json();
+      const rawBody = await request.text();
+      if (!(await verifyWebhook(request, rawBody, env.RESEND_WEBHOOK_SECRET))) return json({ error: "Invalid webhook signature." }, 401);
+      const event = JSON.parse(rawBody);
       if (event.type !== "email.received" || !event.data?.email_id) {
         return json({ received: true, ignored: true });
       }
