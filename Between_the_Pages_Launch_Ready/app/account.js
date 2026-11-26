@@ -269,6 +269,23 @@
     show();
   }
 
+  async function listPendingArcImports() {
+    if (!authUser || !client) throw new Error('Sign in to view your pending ARC imports.');
+    const { data, error } = await client.from('pending_arc_imports')
+      .select('id,title,author,publisher,publication_date,netgalley_url,subject,received_at,status')
+      .eq('status', 'pending').order('received_at', { ascending: false });
+    if (error) throw error;
+    return data || [];
+  }
+  async function updatePendingArcImport(id, status) {
+    if (!authUser || !client) throw new Error('Sign in to manage ARC imports.');
+    if (!['imported', 'dismissed'].includes(status)) throw new Error('Invalid import status.');
+    const { data, error } = await client.from('pending_arc_imports')
+      .update({ status }).eq('id', id).select('id,status').single();
+    if (error) throw error;
+    return data;
+  }
+
   function start() {
     if (!window.supabase?.createClient) {
       const tag = document.createElement('script');
@@ -279,6 +296,11 @@
       return;
     }
     client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+    window.BTPAccount = {
+      isSignedIn: () => !!authUser,
+      listPendingArcImports,
+      updatePendingArcImport
+    };
     hookSettings();
     hookRender();
     bindPanelEvents();
