@@ -163,12 +163,6 @@
     const container = document.querySelector('.arc-settings-grid');
     if (!container || $('btpAccountPanel')) return;
     container.insertAdjacentHTML('afterbegin', panelMarkup());
-    $('btpSignIn').addEventListener('click', signIn);
-    $('btpSignUp').addEventListener('click', signUp);
-    $('btpForgot').addEventListener('click', forgotPassword);
-    $('btpSignOut').addEventListener('click', signOut);
-    $('btpCloudBackup').addEventListener('click', backupDevice);
-    $('btpCloudRestore').addEventListener('click', restoreCloud);
     refreshPanel();
   }
   function hookSettings() {
@@ -287,6 +281,7 @@
     client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
     hookSettings();
     hookRender();
+    bindPanelEvents();
     client.auth.getSession().then(({data, error}) => {
       if (error) console.warn('Supabase session check:', error.message);
       authUser = data?.session?.user || null;
