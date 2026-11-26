@@ -52,6 +52,7 @@ export default {
 
     // Save reviewer backup
     if (path === "/backup" && request.method === "POST") {
+      let stage = "authentication";
       try {
         const user = await authenticate();
 
@@ -59,6 +60,7 @@ export default {
           return respond({ error: "Unauthorised" }, 401);
         }
 
+        stage = "reading backup payload";
         const backup = await request.json();
 
         if (!backup || typeof backup !== "object" ||
@@ -69,6 +71,7 @@ export default {
         const objectKey = `${user.id}/library.json`;
         const backupData = JSON.stringify(backup);
 
+        stage = "writing backup to R2";
         await env.BACKUP_BUCKET.put(objectKey, backupData, {
           httpMetadata: {
             contentType: "application/json"
@@ -76,6 +79,7 @@ export default {
         });
 
         // Update Supabase backup record
+        stage = "updating Supabase backup metadata";
         const dbResponse = await fetch(
           `${env.SUPABASE_URL}/rest/v1/user_backups?on_conflict=object_key`,
           {
@@ -97,8 +101,13 @@ export default {
         );
 
         if (!dbResponse.ok) {
-          console.error("Backup metadata update failed:", await dbResponse.text());
-          return respond({ error: "Backup saved but metadata update failed" }, 500);
+          const detail = await dbResponse.text();
+          console.error("Backup metadata update failed:", detail);
+          return respond({
+            error: "Backup saved to R2, but metadata update failed",
+            stage,
+            detail: detail.slice(0, 1000)
+          }, 500);
         }
 
         return respond({
@@ -108,8 +117,13 @@ export default {
         });
 
       } catch (error) {
-        console.error("Backup error:", error);
-        return respond({ error: "Backup failed" }, 500);
+        const detail = error instanceof Error ? error.message : String(error);
+        console.error("Backup error at stage " + stage + ":", detail);
+        return respond({
+          error: "Backup failed",
+          stage,
+          detail: detail.slice(0, 1000)
+        }, 500);
       }
     }
 
